@@ -1,0 +1,291 @@
+---
+title: "CEMA_internship_Task"
+author: "Name: Benson Nyota"
+ 
+
+output: html_document
+
+---
+
+#### **Conducting an in-depth exploration of the dataset to derive insights and analyze the patterns and prevalence of malnutrition and deworming among children under the age of 5 years across all counties.**
+
+### Exploring a dataset of children below 5years.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+library(tidyverse)
+library(dplyr)
+library(gridExtra)
+```
+
+<br/>
+
+## Exploratory Data Analysis
+
+**Loading in dataset**
+```{r loading dataset}
+df <- read.csv("https://raw.githubusercontent.com/cema-uonbi/internship_task/main/data/cema_internship_task_2023.csv")
+str(df)
+```
+**The dataset shape**
+```{r dimensions}
+dim(df)
+```
+we get to understand the dataset has 1410 observations and 11 variables
+
+<br/>
+
+**Viewing the columns**
+```{r columns}
+columns<-colnames(df)
+columns
+```
+
+
+
+**statistical summary of the dataset**
+```{r statistical summary}
+summary(df)
+```
+- There are different dtypes in the dataset.
+- For numerical features, the statistcal aggregations of each variables can observed. and some meaningful insights can be made
+
+<br/>
+
+**checking for null values withing the dataset**
+```{r}
+numeric_data <-df[, -c(1, 2)]
+numeric_na <- colSums(numeric_data)
+numeric_na
+```
+
+we find that there are missing values within our dataset.  
+Therefore we can decide to impute or drop the observations with missing values for accurate and reliable analysis.
+For this case we drop 
+
+
+**missing values**
+```{r missing values}
+data <- na.omit(df)
+dim(data)
+```
+We drop observations with missing values.
+
+<br/>
+
+## Data Visualizations
+**Total Dewormed in each county**
+
+Getting the total children dewormed in each county across the country
+
+```{r county group}
+county_group<- data%>%
+group_by(county)%>%
+summarise(sum_deworm=sum(Total.Dewormed))
+ggplot(county_group, aes(x=county, y=sum_deworm, fill="blue"))+
+ geom_col()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+labs(x = "Counties in Kenya", y = "Total Children Dewormed", title = "Total number of children dewormed in each County")
+  
+```
+
+
+Nairobi county had the largest number of children that were dewormed.
+Followed by Kilifi and Nakuru county.
+On the other hand; Bomet,Nyandarua and Uasin Gishu counties had the least number of children that were dewormed.
+
+
+**Malnutrition,stunted-growth, diarrhoea and underweight cases**
+
+
+In relation to county we get to see their distribution
+```{r, fig.width=10, fig.height=50}
+#grouped by counties
+# we use df dataset to prevent omission of some counties due to null values
+#aggregations in respect to total cases
+county_avg <- df %>% 
+          group_by(county) %>% 
+        summarise(
+                  Acute.Malnutrition = sum(Acute.Malnutrition),
+                  stunted.0..6.months = sum(stunted.0..6.months),
+                  stunted.6.23.months = sum(stunted.6.23.months),
+                  stunted.24.59.months = sum(stunted.24.59.months),
+                  Underweight.0..6.months = sum(Underweight.0..6.months),
+                  diarrhoea.cases = sum(diarrhoea.cases),
+                  Underweight.6.23.months = sum(Underweight.6.23.months),
+                 Underweight.24.59.Months = sum(Underweight.24.59.Months)
+           )
+
+
+#plot1
+plot1 <- ggplot(county_avg, aes(x = county, y = Acute.Malnutrition, fill="blue")) +
+                             geom_col() +
+           theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                    labs(x = "Counties", y = "Total Malnutrition cases", title = "Total Acute Malnutrition Cases ")+coord_flip()
+#plot2
+plot2 <- ggplot(county_avg, aes(x = county, y = stunted.0..6.months)) +
+                                  geom_col() +
+                theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                        labs(x = "Counties", y = "Total stunted-growth cases", title = "  0-6months children with stunted growth ")
+
+#plot5
+ plot5 <- ggplot(county_avg, aes(x = county, y = diarrhoea.cases)) +
+                                  geom_col() +
+                     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                              labs(x = "Counties", y = "Total Diarrhoes cases", title = "Diarrhoea cases across the Country ")
+#plot6
+plot6 <- ggplot(county_avg, aes(x = county, y = Underweight.0..6.months)) +
+                                       geom_col() +
+                     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                              labs(x = "Counties", y = "Total cases", title = "Total Underweight children (0-<6months) ")
+#plot7
+ plot7 <- ggplot(county_avg, aes(x = county, y = Underweight.6.23.months)) +
+                                            geom_col() +
+                         theme(axis.text.x = element_text(angle = 90, hjust = 1))+ 
+                                  labs(x = "Counties", y = "Total cases", title = "Total Underweight children (6-23months) ")
+#plot3
+ plot3 <- ggplot(county_avg, aes(x = county, y = stunted.6.23.months)) +
+                                       geom_col() +
+                     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                             labs(x = "Counties", y = "Total cases", title = "6-23months children stunted-growth ")
+#plot8
+plot8 <- ggplot(county_avg, aes(x = county, y = Underweight.24.59.Months, width = 4, height = 4)) +
+                                                 geom_col() +
+                               theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                                      labs(x = "Counties", y = "Total cases", title = "Underweight children (24-59months) ")
+
+#plot4
+plot4 <- ggplot(county_avg, aes(x = county, y = stunted.24.59.months, fill="purple")) +
+                                       geom_col() +
+                     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+                        labs(x = "Counties", y = "Total cases", title = "(24-59)months stunted-growth ")
+
+ #griding the subplots                                     
+grid.arrange(plot1, plot2,plot3,plot4, plot5, plot6, plot7, plot8, ncol = 1)
+
+```
+Notes:
+
+- Nairobi county leads with diarrhoea and underweight cases of you children, despite having highest deworming rate. This leads us to another considerations of causes that might be due to hygiene challenges.
+- Though Nairobi is also highly populated County.
+
+- Wajir County leads in acute malnutrition cases, the emaciation might be considered as a result of drought and thus leads less food intake.
+
+- Underweight cases of grown children mostly occcurs in Trans Nzoia, Turkana, Uasin Gishu counties.
+
+
+
+
+
+
+**Rate of deworming in every month**
+
+
+A new column of month 
+```{r}
+data_split <- separate(data, period, into = c("month", "year"), sep = "-")
+data_month<-data_split%>%
+      group_by(month)%>%
+      summarise(monthly_dewaormed=sum(Total.Dewormed))
+
+ggplot(data_month, aes(x=month, y=monthly_dewaormed, color=month))+
+ geom_col() +
+          labs(x = "Months", y = "Total dewormed", title = "Monthly deworms ")
+```
+
+Most children were dewormed month of June.
+
+May & Nov were slightly high.
+
+
+```{r}
+
+data_month<-data_split%>%
+      group_by(month)%>%
+      summarise(monthly_malnutrition=sum(Acute.Malnutrition))
+
+ggplot(data_month, aes(x=month, y=monthly_malnutrition, fill="brown"))+
+ geom_col() +
+          labs(x = "Months", y = "Total Acute malnutrited", title = "Acute Malnutrition" )
+```
+
+
+**Annual Deworming**
+```{r}
+data_yearly<-data_split%>%
+      group_by(year)%>%
+      summarise(yearly_dewormed=sum(Total.Dewormed))
+data_yearly$year[data_yearly$year %in% c("21", "22", "23")] <- c("2021", "2022", "2023")
+ggplot(data_yearly, aes(x=year, y=yearly_dewormed, color=year, fill="purple"))+
+ geom_col()+labs(title = "Annual deworming records" )
+```
+
+
+Malnutrition
+
+
+```{r}
+data_yearly<-data_split%>%
+      group_by(year)%>%
+      summarise(yearly_malnutrited=sum(Acute.Malnutrition))
+data_yearly$year[data_yearly$year %in% c("21", "22", "23")] <- c("2021", "2022", "2023")
+ggplot(data_yearly, aes(x=year, y=yearly_malnutrited, color=year, fill="purple"))+
+ geom_col()+labs(title = "Annual Acute Malnutrition records" )
+```
+2022 had high rate of Malnutrition followed by 2023 despite the year being half.
+
+
+
+**Total.Dewormed vs Diarrhoea**
+```{r}
+# grouping dataset in county and year
+yearly_avg <- data_split %>% 
+               group_by(county, year) %>% 
+               summarise(
+                           Total.Dewormed=mean(Total.Dewormed),Acute.Malnutrition = mean(Acute.Malnutrition),
+                           stunted.0..6.months = mean(stunted.0..6.months),
+                           stunted.6.23.months = mean(stunted.6.23.months),
+                           stunted.24.59.months = mean(stunted.24.59.months),
+                           Underweight.0..6.months = mean(Underweight.0..6.months),
+                           diarrhoea.cases = mean(diarrhoea.cases),
+                           Underweight.6.23.months = mean(Underweight.6.23.months),
+                           Underweight.24.59.Months =mean(Underweight.24.59.Months))
+ #renaming the year values
+yearly_avg$year[yearly_avg$year %in% c("21", "22", "23")] <- c("2021", "2022", "2023")
+#plotting the data
+ggplot(yearly_avg, aes(x=Total.Dewormed, y=diarrhoea.cases, color=year))+
+     geom_smooth()+labs(title = "Diarrhoea vs Dewormed cases" )
+```
+There is a positive correlation between Total.dewormed and Diarrhoea cases.
+
+Assumming that those places which had high rates of diarrhoea cases children were dewormed most.
+
+
+
+
+**Total.Dewormed versus Stunted_Growth**
+```{r, fig.width=10, fig.height=20}
+p <- ggplot(yearly_avg, aes(x=Total.Dewormed, y=stunted.6.23.months, color=year))+
+     geom_point()+labs(title = "Total.Dewormed vs stunted6-23months " )
+
+pl <- ggplot(yearly_avg, aes(x=Total.Dewormed, y=stunted.0..6.months, color=year))+
+     geom_point()+labs(title = "Total.Dewormed vs stunted 0-6months " )
+
+plt <- ggplot(yearly_avg, aes(x=Total.Dewormed, y=stunted.24.59.months, color=year))+
+     geom_point()+labs(title = "Total.Dewormed vs stunted 24-59months " )
+
+grid.arrange(p, pl,plt, ncol = 1)
+```
+Linear correlation was noted from the graphs
+
+
+#### Remarks
+1. The Nairobi area requires close attention to investigate the underlying causes of high diarrhea prevalence, which could potentially be related to hygiene factors.
+2. Counties like Nyandarua, Bomet, and Uasin-Gishu should focus on increasing the rate of deworming efforts.
+3. Acute Malnutrition significantly influences stunted growth in children, emphasizing its significant impact.
+4. Bomet County experienced lower levels of malnutrition and stunted growth cases, indicating a less severe impact.
+5. Underweight issues among children aged 25-59 months affected every county across the country.
+
