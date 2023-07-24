@@ -13,7 +13,7 @@ The dataset contains the following varibales:
 
 
 
-Also provided you with shapefiles incase you need to use them.
+Also provided shapefiles incase  needed.
 
 
 
